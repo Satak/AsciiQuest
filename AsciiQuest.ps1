@@ -59,27 +59,38 @@ enum CharacterClass
     Priest
 }
 
+enum PotionType
+{
+    Health
+    AttackBoost
+    DexterityBoost
+    StrengthBoost
+}
+
+# Items
 class Item
 {
+    [string]     $Name
     [int] $ID = (Get-Random)
     [string] $ObjectType = 'Item'
     [string] $S
     [int] $X
     [int] $Y
+    $Color
 }
 
 class Weapon : Item
 {
-    # Properties
-    [string]     $Name
+    # Properties 
     [WeaponType] $WeaponType
     [int]        $Damage
     [int]        $DamageBonus
     [Hands]      $Hands
     [bool]       $Melee
-    [RareType] $RareType
-    [Player]   $Equip
-    $Color
+    [RareType]   $RareType
+    [Player]     $Equip
+    [bool]       $UsableItem = $false
+    
     
     # Constructor
     Weapon(
@@ -92,7 +103,7 @@ class Weapon : Item
         [string]     $S,
         [int]        $X,
         [int]        $Y,
-        $Color
+                     $Color
     )
     {
         $this.Name =        $RareType.ToString() + " " + $Hands.ToString() + " hand " + $WeaponType.ToString()
@@ -109,6 +120,46 @@ class Weapon : Item
     }
 }
 
+class Potion : Item
+{
+    [PotionType] $PotionType
+    [bool] $UsableItem = $true
+
+    Potion([PotionType] $PotionType)
+    {
+        $this.Name = "$PotionType potion"
+        $this.PotionType = $PotionType
+        $this.Color = [System.ConsoleColor]::Red
+    }
+
+    Potion([PotionType] $PotionType,$X,$Y)
+    {
+        $this.Name = "$PotionType potion"
+        $this.PotionType = $PotionType
+        $this.Color = [System.ConsoleColor]::Red
+        $this.X = $X
+        $this.Y = $Y
+        $this.S = '+'
+    }
+
+    Use($User)
+    {
+
+        Switch($this.PotionType.value__)
+        {
+            0{$hpPlus = Get-Random -Minimum 1 -Maximum 11; $User.HP += $hpPlus; Write-Host "$($User.Name) used $($this.Name) [+$hpPlus HP]" -ForegroundColor Green} # Health
+            1{Write-Host "AttackBoost" } # AttackBoost
+            2{Write-Host "DexterityBoost"} # DexterityBoost
+            3{Write-Host "StrengthBoost"} # StrengthBoost
+        }
+
+        $user.inventory.remove($this)
+    }
+    
+}
+
+
+# Creatures
 class Creature
 {
     # Properties
@@ -181,6 +232,11 @@ class Creature
                     $Target.HP = 0
                     $Target.Alive = $false
                     $this.XP += $target.XP
+                    if($target -is [Foe])
+                    {
+                        $target.RollDrop()
+                    }
+
                     Write-Host "'$($this.name)' hits '$($Target.name)' with '$($Weapon.Name)' (A:$($attack)/D:$($defence)). Damage: [$TotalDamage] (target HP left: $($Target.HP))" -ForegroundColor Yellow
                     Write-Host "'$($Target.name)' Dies" -ForegroundColor Red
                 }
@@ -294,6 +350,12 @@ class Player : Creature
         $this.Y =       $Y
         $this.Color =   $Color
     }
+
+    UseItem([item] $item)
+    {
+        $item.Use($this)
+    }
+
 }
 
 class Foe : Creature
@@ -334,7 +396,20 @@ class Foe : Creature
         $this.Color =    $Color
         $this.XP =       (($Race + 1) * ($RareType+1) * $Level)
     }
+
+    RollDrop()
+    {
+        $roll = Get-Random -Minimum 1 -Maximum 101
+
+        if($roll -gt 1)
+        {
+            $Potion = New-Object Potion -ArgumentList ([PotionType]::Health),$this.X,$this.Y
+            Add-ItemToWorld -Item $Potion
+        }
+    }
+
 }
+
 
 class Block
 {
@@ -660,6 +735,14 @@ $2D = @{
     Y = 20
 }
 
+function Add-ItemToWorld
+{
+param($Item)
+
+    $AllObjects.add($Item)
+
+}
+
 $weapon = New-Object Weapon -ArgumentList ([WeaponType]::Gauntlet),3,1,0,$true,0,'>',1,2,([System.ConsoleColor]::Green)
 $p = New-Object Player -ArgumentList 'Warrior',([Race]::Human),1,20,2,2,2,10,'@',1,1,([System.ConsoleColor]::Yellow)
 
@@ -681,6 +764,23 @@ while($p.alive)
 
     Switch($key)
     {
+        49
+        {
+            Write-Host "Use item"
+            $itemSelected = Get-Inventory -Player $p
+            if($itemSelected.UsableItem)
+            {
+                $p.UseItem($itemSelected)
+
+                $wait = $host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+            }
+            else
+            {
+                Write-Host "$($itemSelected.Name) is not usable!"
+                $wait = $host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+            }
+        } # Use item
+
         69
         {
             $itemSelected = Get-Inventory -Player $p
