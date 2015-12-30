@@ -784,7 +784,7 @@ while($p.alive)
             # Walls
             if($cord.y -eq 0 -or $cord.y -eq $2D.Y -or $cord.x -eq 0 -or $cord.x -eq $2D.X)
             {
-                Write-Host "You bumbed into wall"
+                Write-Host "You bumped into the wall"
             }
             else
             {
