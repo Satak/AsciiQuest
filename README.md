@@ -11,6 +11,7 @@
 * Move Rigth [Arrow Rigth]
 * Attack [collide with enemy]
 * Loot [collide with item]
+* Drop [d] (only items that are unequipped can be dropped)
 * Equip [e]
 * Unequip [u]
 * Inventory [i]
