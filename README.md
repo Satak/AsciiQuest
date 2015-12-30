@@ -18,3 +18,29 @@
 * Equipped weapon info [w]
           
 ![alt tag](https://github.com/Satak/AsciiQuest/blob/master/AsciiQuest.PNG)
+
+To do list:
+
+* GetAC method
+* BaseAC + armor + shield + potion
+* Enemy weapons and armor
+* Some foes don't have weapons, for example rats, spiders, etc. (drops only potions and gold?)
+* Armor system
+* Shields
+* Time System (ticks)
+* Potion system
+* Health (+1-3 HP)
+* Boost (needs time system implementation)
+* Drop system
+* Equipments
+* Gold
+* Potions
+* Enemy movement
+* Towern, energy boost or disease
+* Buy system
+* Leveling
+* Scalability
+* Complicated maps
+* Levels
+* Doors
+* Rooms
