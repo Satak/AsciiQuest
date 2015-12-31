@@ -1,5 +1,6 @@
 ﻿cls
 
+[System.Console]::BackgroundColor = [System.ConsoleColor]::Black
 enum RareType
 {
     Common
@@ -676,7 +677,9 @@ param(
         {
             if($y -eq 0 -or $y -eq $YSize -or $x -eq 0 -or $x -eq $XSize)
             {
-                [Console]::Out.Write('#')
+                [System.Console]::BackgroundColor = [System.ConsoleColor]::Gray
+                [Console]::Out.Write(' ')
+                [System.Console]::BackgroundColor = [System.ConsoleColor]::Black
             }
             else
             {
@@ -692,22 +695,22 @@ param(
                     {
                         [System.Console]::ForegroundColor = $temp[0].Color
                         [Console]::Out.Write($temp[0].S)
-                        [System.Console]::ResetColor()
                     }
                     else
                     {
                         [System.Console]::ForegroundColor = $temp.Color
                         [Console]::Out.Write($temp.S)
-                        [System.Console]::ResetColor()
+
                     }
                 }
                 else
                 {
-                    [Console]::Out.Write('.')
+                    [Console]::Out.Write(' ')
                 }
             }
         }
         [Console]::Out.Write("`n")
+        [System.Console]::ForegroundColor = [System.ConsoleColor]::White
     }
 
 }
