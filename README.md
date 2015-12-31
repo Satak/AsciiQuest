@@ -20,6 +20,7 @@
 * Dropping
 * Health potions
 * XP counter
+* Buy and sell items
 
 ###Key commands
 * Move UP [Arrow UP]
@@ -34,6 +35,8 @@
 * Inventory [i]
 * Player stats [s]
 * Equipped gear info [g]
+* Buy [z]
+* Sell [x]
           
 ![alt tag](https://github.com/Satak/AsciiQuest/blob/master/AsciiQuest.PNG)
 
@@ -51,11 +54,11 @@ To do list:
 * Boost (needs time system implementation)
 * ~~Drop system~~ DONE
 * ~~Equipments~~ DONE
-* Gold
+* ~~Gold~~ DONE
 * ~~Potions~~ DONE
 * Enemy movement
 * Towern, energy boost or disease
-* Buy system
+* ~~Buy/Sell system~~ DONE
 * Leveling
 * Scalability
 * Complicated maps
