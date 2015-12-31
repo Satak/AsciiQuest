@@ -456,6 +456,7 @@ class Player : Creature
 {
     # Properties
     [Race] $Race
+    [bool] $NCP = $false
 
     # Constructor
     Player(
@@ -523,6 +524,7 @@ class Foe : Creature
     [FoeRace]  $Race
     [RareType] $RareType
     [int]      $XP
+    [bool]     $NCP = $true
 
     # Constructor
     Foe(
@@ -1176,6 +1178,36 @@ function Get-Store
 
 }
 
+function Move-Monsters
+{
+param([Foe[]] $Foes, [player] $Player)
+
+    foreach($f in $Foes)
+    {
+        if(($Player.X -eq ($f.X-1) -and $Player.Y -eq $f.Y) -or ($Player.X -eq $f.X -and $Player.Y -eq ($f.Y - 1) ) )
+        {
+            Write-Host "enemy hit"
+            $f.Hit($target.WeaponEquip,$Player)
+        }
+        elseif($Player.X -gt $f.X)
+        {
+            $f.X += 1
+        }
+        elseif($Player.X -lt $f.X)
+        {
+            $f.X -= 1
+        }
+        elseif($Player.Y -gt $f.Y)
+        {
+            $f.Y += 1
+        }
+        elseif($Player.Y -lt $f.Y)
+        {
+            $f.Y -= 1
+        }
+    }
+}
+
 $2D = @{
     X = 30
     Y = 20
@@ -1419,6 +1451,9 @@ while($p.alive)
             $wait = $host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
         
         }
+
+        #move monsters, needs fixing, collisions etc.
+        # Move-Monsters -Foes ($AllObjects |where NCP -eq $true) -Player $p
     }
 }
 
