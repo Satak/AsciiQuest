@@ -12,7 +12,7 @@
 * Attack [collide with enemy]
 * Loot [collide with item]
 * Drop [d] note: only items that are unequipped can be dropped
-* Equip [e]
+* Gear Equip [g]
 * Unequip [u]
 * Inventory [i]
 * Player stats [s]
@@ -22,20 +22,20 @@
 
 To do list:
 
-* GetAC method
-* BaseAC + armor + shield + potion
+* ~~GetAC method~~ DONE
+* ~~BaseAC + armor + shield + potion~~ DONE
 * Enemy weapons and armor
 * Some foes don't have weapons, for example rats, spiders, etc. (drops only potions and gold?)
-* Armor system
-* Shields
+* ~~Armor system~~ DONE
+* ~~Shields~~ DONE
 * Time System (ticks)
-* Potion system
-* Health (+1-3 HP)
+* ~~Potion system~~ DONE
+* ~~Health (+1-3 HP)~~ DONE
 * Boost (needs time system implementation)
-* Drop system
-* Equipments
+* ~~Drop system~~ DONE
+* ~~Equipments~~ DONE
 * Gold
-* Potions
+* ~~Potions~~ DONE
 * Enemy movement
 * Towern, energy boost or disease
 * Buy system
