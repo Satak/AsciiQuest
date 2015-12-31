@@ -127,7 +127,8 @@ class Weapon : Item
         [string]     $S,
         [int]        $X,
         [int]        $Y,
-                     $Color
+                     $Color,
+        [int]        $Gold
     )
     {
         $this.Name =        $RareType.ToString() + " " + $Hands.ToString() + " hand " + $WeaponType.ToString()
@@ -141,6 +142,7 @@ class Weapon : Item
         $this.X =           $X
         $this.Y =           $Y
         $this.Color =       $Color
+        $this.Gold =        $Gold
     }
 }
 
@@ -149,14 +151,15 @@ class Potion : Item
     [PotionType] $PotionType
     [bool] $UsableItem = $true
 
-    Potion([PotionType] $PotionType)
+    Potion([PotionType] $PotionType,[int] $Gold)
     {
         $this.Name = "$PotionType potion"
         $this.PotionType = $PotionType
         $this.Color = [System.ConsoleColor]::Red
+        $this.Gold = $Gold
     }
 
-    Potion([PotionType] $PotionType,$X,$Y)
+    Potion([PotionType] $PotionType,$X,$Y,[int] $Gold)
     {
         $this.Name = "$PotionType potion"
         $this.PotionType = $PotionType
@@ -164,6 +167,7 @@ class Potion : Item
         $this.X = $X
         $this.Y = $Y
         $this.S = '+'
+        $this.Gold = $Gold
     }
 
     Use($User)
@@ -200,7 +204,8 @@ Class Armor : Item
         [string]     $S,
         [int]        $X,
         [int]        $Y,
-                     $Color
+                     $Color,
+        [int]        $Gold
     )
     {
         $this.Name =        "$($RareType.ToString()) $($ArmorType.ToString()) armor"
@@ -211,6 +216,7 @@ Class Armor : Item
         $this.X =           $X
         $this.Y =           $Y
         $this.Color =       $Color
+        $this.Gold =        $Gold
     }
 }
 
@@ -232,7 +238,8 @@ Class Shield : Item
         [string]     $S,
         [int]        $X,
         [int]        $Y,
-                     $Color
+                     $Color,
+        [int]        $Gold
     )
     {
         $this.Name =        "$($RareType.ToString()) $($ShieldType.ToString()) shield"
@@ -243,6 +250,7 @@ Class Shield : Item
         $this.X =           $X
         $this.Y =           $Y
         $this.Color =       $Color
+        $this.Gold =        $Gold
     }
 }
 
@@ -289,7 +297,7 @@ class Creature
         {
             if($Weapon.Equip -eq $null)
             {
-                $Weapon = New-Object Weapon -ArgumentList ([WeaponType]::Unarmed),3,0,0,$true,0,'>',1,1,([System.ConsoleColor]::Green)
+                $Weapon = New-Object Weapon -ArgumentList ([WeaponType]::Unarmed),3,0,0,$true,0,'>',1,1,([System.ConsoleColor]::Green),0
             }
 
             $Roll = Get-Random -Minimum 1 -Maximum 21
@@ -485,12 +493,25 @@ class Player : Creature
 
     Sell([item] $item)
     {
-    
+        $this.Gold += ([math]::Ceiling($item.Gold * 0.25))
+        $this.Inventory.Remove($item)
+
+        Write-Host "Player sold $($item.name)"
     }
 
     Buy([item] $item)
     {
-    
+        if($this.Gold -ge $item.Gold)
+        {
+            $this.Gold -= $item.Gold
+            $this.Inventory.Add($item)
+
+            Write-Host "Player bought item: '$($item.name)'"
+        }
+        else
+        {
+            Write-Warning "You don't have enough money ($($this.gold) total) to buy this item: '$($item.name)' ($($item.gold))"
+        }  
     }
 
 }
@@ -548,7 +569,7 @@ class Foe : Creature
             {
                 0
                 {
-                    $item = New-Object Potion -ArgumentList ([PotionType]::Health),$this.X,$this.Y
+                    $item = New-Object Potion -ArgumentList ([PotionType]::Health),$this.X,$this.Y,100
                     
                 } # Drops Potion
 
@@ -647,7 +668,7 @@ param(
     
     cls
     [Console]::Out.Write("`n")
-    Write-host "$($p.name)'s Quest XP:[$($p.XP)] HP:[$($p.HP)]" -ForegroundColor Red
+    Write-host "Gold:[$($p.Gold)] XP:[$($p.XP)] HP:[$($p.HP)]" -ForegroundColor Red
 
     foreach($y in 0..$YSize)
     {
@@ -928,6 +949,7 @@ param(
                     $DamageBonus = 1
                     $Hands = [Hands]::One
                     $Melee = $true
+                    $Gold = 20
                 } # Gauntlet
 
                 2
@@ -936,6 +958,7 @@ param(
                     $DamageBonus = 1
                     $Hands = [Hands]::One
                     $Melee = $true
+                    $Gold = 30
                 } # Dagger
 
                 3
@@ -944,6 +967,7 @@ param(
                     $DamageBonus = 1
                     $Hands = [Hands]::One
                     $Melee = $true
+                    $Gold = 40
                 } # Sickle
 
                 4
@@ -952,6 +976,7 @@ param(
                     $DamageBonus = 1
                     $Hands = [Hands]::One
                     $Melee = $true
+                    $Gold = 50
                 } # Club
 
                 5
@@ -960,6 +985,7 @@ param(
                     $DamageBonus = 1
                     $Hands = [Hands]::One
                     $Melee = $true
+                    $Gold = 60
                 } # Morningstar
 
                 6
@@ -968,6 +994,7 @@ param(
                     $DamageBonus = 1
                     $Hands = [Hands]::One
                     $Melee = $true
+                    $Gold = 80
                 } # Axe
 
                 7
@@ -976,6 +1003,7 @@ param(
                     $DamageBonus = 1
                     $Hands = [Hands]::One
                     $Melee = $true
+                    $Gold = 120
                 } # Battleaxe
 
                 8
@@ -984,6 +1012,7 @@ param(
                     $DamageBonus = 1
                     $Hands = [Hands]::One
                     $Melee = $true
+                    $Gold = 200
                 } # Longsword
 
                 9
@@ -992,6 +1021,7 @@ param(
                     $DamageBonus = 2
                     $Hands = [Hands]::Two
                     $Melee = $true
+                    $Gold = 1000
                 } # GreatAxe
 
                 10
@@ -1000,6 +1030,7 @@ param(
                     $DamageBonus = 2
                     $Hands = [Hands]::Two
                     $Melee = $true
+                    $Gold = 2000
                 } # GreatSword
 
                 11
@@ -1008,6 +1039,7 @@ param(
                     $DamageBonus = 2
                     $Hands = [Hands]::Two
                     $Melee = $true
+                    $Gold = 4000
                 } # GreatWarhammer
             }
 
@@ -1020,21 +1052,25 @@ param(
                 1
                 {
                     $ACBonus = 1
+                    $Gold = 500
                 } # Leather
 
                 2
                 {
                     $ACBonus = 2
+                    $Gold = 1000
                 } # Hide
 
                 3
                 {
                     $ACBonus = 3
+                    $Gold = 2000
                 } # Chain
 
                 4
                 {
                     $ACBonus = 4
+                    $Gold = 10000
                 } # Magic
             }
 
@@ -1047,11 +1083,13 @@ param(
                 1
                 {
                     $ACBonus = 1
+                    $Gold = 1000
                 } # Wood
 
                 2
                 {
                     $ACBonus = 2
+                    $Gold = 2000
                 } # Metal
             }
         } # Shield
@@ -1065,21 +1103,21 @@ param(
         {
             {$_ -in 1..79}
             {
-                $DM = 1
+                $Multiplier = 1
                 $Color = [System.ConsoleColor]::Green
                 $RareType = [RareType]::Common   
             }
 
             {$_ -in 80..94}
             {
-                $DM = 1.25
+                $Multiplier = 1.25
                 $Color = [System.ConsoleColor]::Cyan
                 $RareType = [RareType]::Uncommon
             }
 
             {$_ -in 95..99}
             {
-                $DM = 1.5
+                $Multiplier = 1.5
                 $Color = [System.ConsoleColor]::Red
                 $RareType = [RareType]::Rare
             }
@@ -1096,17 +1134,17 @@ param(
         {
             0
             {
-                New-Object Weapon -ArgumentList $ItemSubType,([math]::Ceiling($Damage * $DM)),$DamageBonus,$Hands,$Melee,$RareType,'/',$X,$Y,$Color
+                New-Object Weapon -ArgumentList $ItemSubType,([math]::Ceiling($Damage * $Multiplier)),$DamageBonus,$Hands,$Melee,$RareType,'/',$X,$Y,$Color,([math]::Ceiling($Gold * $Multiplier))
             } # Weapon
             
             1
             {
-                New-Object Armor -ArgumentList $ItemSubType,([math]::Ceiling($ACBonus * $DM)),$RareType,'=',$X,$Y,$Color
+                New-Object Armor -ArgumentList $ItemSubType,([math]::Ceiling($ACBonus * $Multiplier)),$RareType,'=',$X,$Y,$Color,([math]::Ceiling($Gold * $Multiplier))
             } # Armor
 
             2
             {
-                New-Object Shield -ArgumentList $ItemSubType,([math]::Ceiling($ACBonus * $DM)),$RareType,'0',$X,$Y,$Color
+                New-Object Shield -ArgumentList $ItemSubType,([math]::Ceiling($ACBonus * $Multiplier)),$RareType,'0',$X,$Y,$Color,([math]::Ceiling($Gold * $Multiplier))
             } # Shield
         }
         
@@ -1115,6 +1153,25 @@ param(
     return $Items
 }
 
+function Get-Store
+{
+
+    $gategorySelect = 'Weapon','Armor','Shield','Potion' | Out-GridView -PassThru
+
+    switch($gategorySelect)
+    {
+        'Weapon' {$items = 1..([enum]::GetNames([WeaponType]).count -1) | %{Create-NewItem -ItemType 0 -Level 1 -Count 1 -ItemSubType $_ -X 0 -Y 0}}
+        'Armor'  {$Items = 1..([enum]::GetNames([ArmorType]).count -1) | %{Create-NewItem -ItemType 1 -Level 1 -Count 1 -ItemSubType $_ -X 0 -Y 0}}
+        'Shield' {$Items = 1..([enum]::GetNames([ShieldType]).count -1) | %{Create-NewItem -ItemType 2 -Level 1 -Count 1 -ItemSubType $_ -X 0 -Y 0}}
+        'Potion' {$Items = New-Object Potion -ArgumentList ([PotionType]::Health),0,0,100}
+    }
+
+
+    $selectedItem = $Items | Out-GridView -PassThru
+
+    return $selectedItem
+
+}
 
 $2D = @{
     X = 30
@@ -1216,6 +1273,59 @@ while($p.alive)
             $p
             $wait = $host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
         } # [S]tats
+
+        88
+        {
+            Write-Host "Select item to sell"
+            $itemSelected = Get-Inventory -Player $p
+            if($itemSelected)
+            {
+
+                $prompt = Invoke-Prompt -Title "Sell" -Message "Do you want to sell item '$($itemSelected.name)'?"
+
+                switch($prompt)
+                {
+                    0
+                    {
+                        $p.sell($itemSelected)
+                    }
+                    1
+                    {
+                        Write-Host "Selling cancelled"
+                    }
+                }
+                
+
+                $wait = $host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+            }
+        } # Sell
+
+        90
+        {
+            Write-Host "Select item to Buy"
+            $itemSelected = Get-Store
+
+            $itemSelected
+
+            if($itemSelected)
+            {
+                $prompt = Invoke-Prompt -Title "Buy" -Message "Do you want to buy item '$($itemSelected.name)' ($($itemSelected.gold) gold)?"
+
+                switch($prompt)
+                {
+                    0
+                    {
+                        $p.buy($itemSelected)
+                    }
+                    1
+                    {
+                        Write-Host "Buying cancelled"
+                    }
+                } 
+            }
+
+            $wait = $host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+        } # Buy
     }
 
     # If Arrow keys
