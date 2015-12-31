@@ -4,6 +4,23 @@
 * Powershell 5 (because of classes)
 * Run the game in Powershell shell, not ISE (because of some .NET classes don't work in ISE)
 
+###Features
+* Single square map with boundaries
+* Player movement
+* Simplified D&D combat system
+* Attack / crit / miss
+* Inventory system
+* Randomizers
+* Armors
+* Shields
+* Melee weapons
+* Rare types (common, uncommon, rare, epic)
+* Monsters drop loot
+* Looting
+* Dropping
+* Health potions
+* XP counter
+
 ###Key commands
 * Move UP [Arrow UP]
 * Move Down [Arrow Down]
