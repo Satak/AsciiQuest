@@ -12,11 +12,11 @@
 * Attack [collide with enemy]
 * Loot [collide with item]
 * Drop [d] note: only items that are unequipped can be dropped
-* Gear Equip [g]
+* Gear Equip [e]
 * Unequip [u]
 * Inventory [i]
 * Player stats [s]
-* Equipped weapon info [w]
+* Equipped gear info [g]
           
 ![alt tag](https://github.com/Satak/AsciiQuest/blob/master/AsciiQuest.PNG)
 
