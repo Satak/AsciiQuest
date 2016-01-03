@@ -41,6 +41,14 @@ enum ShieldType
     Metal
 }
 
+enum ItemSlot
+{
+    LeftHand = 1
+    RightHand = 2
+    Torso = 3
+    Jewelry = 4
+}
+
 enum Hands
 {
     One
@@ -94,14 +102,15 @@ enum ItemType
 # Items
 class Item
 {
-    [string] $Name
-    [int]    $ID = (Get-Random)
-    [string] $ObjectType = 'Item'
-    [string] $S
-    [int]    $X
-    [int]    $Y
-             $Color
-    [int]    $Gold
+    [string]   $Name
+    [int]      $ID = (Get-Random)
+    [string]   $ObjectType = 'Item'
+    [string]   $S
+    [int]      $X
+    [int]      $Y
+               $Color
+    [int]      $Gold
+    [ItemSlot[]]    $ItemSlot
 }
 
 class Weapon : Item
@@ -116,7 +125,6 @@ class Weapon : Item
     [Player]     $Equip
     [bool]       $UsableItem = $false
     
-    
     # Constructor
     Weapon(
         [WeaponType] $WeaponType,
@@ -129,7 +137,8 @@ class Weapon : Item
         [int]        $X,
         [int]        $Y,
                      $Color,
-        [int]        $Gold
+        [int]        $Gold,
+        [ItemSlot[]]   $ItemSlot
     )
     {
         $this.Name =        $RareType.ToString() + " " + $Hands.ToString() + " hand " + $WeaponType.ToString()
@@ -144,6 +153,7 @@ class Weapon : Item
         $this.Y =           $Y
         $this.Color =       $Color
         $this.Gold =        $Gold
+        $this.ItemSlot =    $ItemSlot
     }
 }
 
@@ -206,7 +216,8 @@ Class Armor : Item
         [int]        $X,
         [int]        $Y,
                      $Color,
-        [int]        $Gold
+        [int]        $Gold,
+        [ItemSlot[]] $ItemSlot
     )
     {
         $this.Name =        "$($RareType.ToString()) $($ArmorType.ToString()) armor"
@@ -218,6 +229,7 @@ Class Armor : Item
         $this.Y =           $Y
         $this.Color =       $Color
         $this.Gold =        $Gold
+        $this.ItemSlot =    $ItemSlot
     }
 }
 
@@ -240,7 +252,8 @@ Class Shield : Item
         [int]        $X,
         [int]        $Y,
                      $Color,
-        [int]        $Gold
+        [int]        $Gold,
+        [ItemSlot[]]   $ItemSlot
     )
     {
         $this.Name =        "$($RareType.ToString()) $($ShieldType.ToString()) shield"
@@ -252,6 +265,7 @@ Class Shield : Item
         $this.Y =           $Y
         $this.Color =       $Color
         $this.Gold =        $Gold
+        $this.ItemSlot =    $ItemSlot
     }
 }
 
@@ -273,17 +287,23 @@ class Creature
     [int]    $Gold
     [string] $ObjectType = 'Creature'
     [System.Collections.ArrayList] $Inventory = @()
-    [Weapon] $WeaponEquip
-    [Armor]  $ArmorEquip
-    [Shield] $ShieldEquip
+    [System.Collections.ArrayList] $Equipped = @()
     [string] $S
     [int]    $X
     [int]    $Y
              $Color
+    [bool]   $CanAttack = $true
     
     # Hit method
-    [Creature] Hit([Weapon] $Weapon,[Creature] $Target)
+    [Creature] Hit([Creature] $Target)
     {
+        $Weapon = $this.Equipped | where {$_.ItemSlot -contains [ItemSlot]::RightHand}
+
+        if(!$Weapon)
+        {
+            $Weapon = New-Object Weapon -ArgumentList ([WeaponType]::Unarmed),3,0,0,$true,0,'>',1,1,([System.ConsoleColor]::Green),0,([itemSlot]::RightHand)
+        }
+
         if(!$this.Alive)
         {
             Write-Warning "[$($this.name)] can't attack because it's dead"
@@ -296,10 +316,6 @@ class Creature
         }
         else
         {
-            if($Weapon.Equip -eq $null)
-            {
-                $Weapon = New-Object Weapon -ArgumentList ([WeaponType]::Unarmed),3,0,0,$true,0,'>',1,1,([System.ConsoleColor]::Green),0
-            }
 
             $Roll = Get-Random -Minimum 1 -Maximum 21
             $attack = $Roll + $this.Atk
@@ -340,7 +356,6 @@ class Creature
                     Write-Host "'$($Target.name)' Dies" -ForegroundColor Red
                 }
 
-                
                 return $Target
                 
             }
@@ -381,28 +396,33 @@ class Creature
 
     Equip([item] $item)
     {
-        if($this.Inventory -contains $item -and $item.Equip -ne $this)
+        # write-host "equipped item slots: $($this.Equipped.ItemSlot) , items item slot: $($item.ItemSlot)"
+        $sameSlot = $null
+        if($this.Equipped.ItemSlot -and $item.ItemSlot)
+        {
+            $sameSlot = (Compare-Object -ReferenceObject $this.Equipped.ItemSlot -DifferenceObject $item.ItemSlot -IncludeEqual | where SideIndicator -eq '==').InputObject
+        }
+
+        if($this.Inventory -contains $item -and $item.Equip -ne $this -and !$sameSlot -and $item.ItemSlot)
         {
             $item.Equip = $this
+            $this.Equipped.Add($item)
 
-            if($item -is [Weapon])
+            if($item -is [Armor] -or $item -is [Shield])
             {
-                $this.WeaponEquip = $item
-            }
-            elseif($item -is [Armor])
-            {
-                $this.ArmorEquip = $item
-                $this.TotalAC += $item.ACBonus
-            }
-            else
-            {
-                $this.ShieldEquip = $item
                 $this.TotalAC += $item.ACBonus
             }
             
-
             $this.Inventory.Remove($Item)
             Write-Host "$($this.Name) equipped [$($Item.Name)]"
+        }
+        elseif(!$item.ItemSlot)
+        {
+            Write-Warning "Item [$($item.Name)] is not equippable" 
+        }
+        elseif($sameSlot)
+        {
+            Write-Warning "$($this.Name) has already item slot [$sameSlot] equipped" 
         }
         elseif($item.Equip -eq $this)
         {
@@ -416,22 +436,13 @@ class Creature
 
     UnEquip([item] $item)
     {
-        if($item.Equip -eq $this)
+        if($item.Equip -eq $this -and $this.Equipped -contains $item)
         {
             $item.Equip = $null
+            $this.Equipped.Remove($item)
 
-            if($item -is [Weapon])
+            if($item -is [Armor] -or $item -is [Shield])
             {
-                $this.WeaponEquip = $null
-            }
-            elseif($item -is [Armor])
-            {
-                $this.ArmorEquip = $null
-                $this.TotalAC -= $item.ACBonus
-            }
-            else
-            {
-                $this.ShieldEquip = $null
                 $this.TotalAC -= $item.ACBonus
             }
 
@@ -446,7 +457,7 @@ class Creature
 
     [item[]] GetEquippedGear()
     {
-        return $this.WeaponEquip, $this.ArmorEquip, $this.ShieldEquip
+        return $this.Equipped
     }
 
 
@@ -946,6 +957,7 @@ param(
     {
         0
         {
+            
             switch($ItemSubType)
             {
                 1
@@ -955,6 +967,7 @@ param(
                     $Hands = [Hands]::One
                     $Melee = $true
                     $Gold = 20
+                    [ItemSlot[]] $ItemSlot = @([ItemSlot]::RightHand)
                 } # Gauntlet
 
                 2
@@ -964,6 +977,7 @@ param(
                     $Hands = [Hands]::One
                     $Melee = $true
                     $Gold = 30
+                    [ItemSlot[]] $ItemSlot = @([ItemSlot]::RightHand)
                 } # Dagger
 
                 3
@@ -973,6 +987,7 @@ param(
                     $Hands = [Hands]::One
                     $Melee = $true
                     $Gold = 40
+                    [ItemSlot[]] $ItemSlot = @([ItemSlot]::RightHand)
                 } # Sickle
 
                 4
@@ -982,6 +997,7 @@ param(
                     $Hands = [Hands]::One
                     $Melee = $true
                     $Gold = 50
+                    [ItemSlot[]] $ItemSlot = @([ItemSlot]::RightHand)
                 } # Club
 
                 5
@@ -991,6 +1007,7 @@ param(
                     $Hands = [Hands]::One
                     $Melee = $true
                     $Gold = 60
+                    [ItemSlot[]] $ItemSlot = @([ItemSlot]::RightHand)
                 } # Morningstar
 
                 6
@@ -1000,6 +1017,7 @@ param(
                     $Hands = [Hands]::One
                     $Melee = $true
                     $Gold = 80
+                    [ItemSlot[]] $ItemSlot = @([ItemSlot]::RightHand)
                 } # Axe
 
                 7
@@ -1009,6 +1027,7 @@ param(
                     $Hands = [Hands]::One
                     $Melee = $true
                     $Gold = 120
+                    [ItemSlot[]] $ItemSlot = @([ItemSlot]::RightHand)
                 } # Battleaxe
 
                 8
@@ -1018,6 +1037,7 @@ param(
                     $Hands = [Hands]::One
                     $Melee = $true
                     $Gold = 200
+                    [ItemSlot[]] $ItemSlot = @([ItemSlot]::RightHand)
                 } # Longsword
 
                 9
@@ -1027,6 +1047,7 @@ param(
                     $Hands = [Hands]::Two
                     $Melee = $true
                     $Gold = 1000
+                    [ItemSlot[]] $ItemSlot = @(([ItemSlot]::RightHand),([ItemSlot]::LeftHand))
                 } # GreatAxe
 
                 10
@@ -1036,6 +1057,7 @@ param(
                     $Hands = [Hands]::Two
                     $Melee = $true
                     $Gold = 2000
+                    [ItemSlot[]] $ItemSlot = @(([ItemSlot]::RightHand),([ItemSlot]::LeftHand))
                 } # GreatSword
 
                 11
@@ -1045,6 +1067,7 @@ param(
                     $Hands = [Hands]::Two
                     $Melee = $true
                     $Gold = 4000
+                    [ItemSlot[]] $ItemSlot = @(([ItemSlot]::RightHand),([ItemSlot]::LeftHand))
                 } # GreatWarhammer
             }
 
@@ -1052,6 +1075,7 @@ param(
 
         1
         {
+            [ItemSlot[]] $ItemSlot = @([ItemSlot]::Torso)
             switch($ItemSubType)
             {
                 1
@@ -1083,6 +1107,7 @@ param(
 
         2
         {
+            [ItemSlot[]] $ItemSlot = @([ItemSlot]::LeftHand)
             switch($ItemSubType)
             {
                 1
@@ -1100,7 +1125,6 @@ param(
         } # Shield
     
     }
-
 
     $Items = 1..$Count | % {
 
@@ -1139,17 +1163,17 @@ param(
         {
             0
             {
-                New-Object Weapon -ArgumentList $ItemSubType,([math]::Ceiling($Damage * $Multiplier)),$DamageBonus,$Hands,$Melee,$RareType,'/',$X,$Y,$Color,([math]::Ceiling($Gold * $Multiplier))
+                New-Object Weapon -ArgumentList $ItemSubType,([math]::Ceiling($Damage * $Multiplier)),$DamageBonus,$Hands,$Melee,$RareType,'/',$X,$Y,$Color,([math]::Ceiling($Gold * $Multiplier)),$ItemSlot
             } # Weapon
             
             1
             {
-                New-Object Armor -ArgumentList $ItemSubType,([math]::Ceiling($ACBonus * $Multiplier)),$RareType,'=',$X,$Y,$Color,([math]::Ceiling($Gold * $Multiplier))
+                New-Object Armor -ArgumentList $ItemSubType,([math]::Ceiling($ACBonus * $Multiplier)),$RareType,'=',$X,$Y,$Color,([math]::Ceiling($Gold * $Multiplier)),$ItemSlot
             } # Armor
 
             2
             {
-                New-Object Shield -ArgumentList $ItemSubType,([math]::Ceiling($ACBonus * $Multiplier)),$RareType,'0',$X,$Y,$Color,([math]::Ceiling($Gold * $Multiplier))
+                New-Object Shield -ArgumentList $ItemSubType,([math]::Ceiling($ACBonus * $Multiplier)),$RareType,'0',$X,$Y,$Color,([math]::Ceiling($Gold * $Multiplier)),$ItemSlot
             } # Shield
         }
         
@@ -1184,42 +1208,70 @@ param([Foe[]] $Foes, [player] $Player)
 
     foreach($f in $Foes)
     {
+
+        if($f.x -in ($Player.x-10)..($Player.x+10) -and $f.y -in ($Player.y-10)..($Player.y+10))
+        {
+
         if(($Player.X -eq ($f.X-1) -and $Player.Y -eq $f.Y) -or ($Player.X -eq $f.X -and $Player.Y -eq ($f.Y - 1) ) )
         {
-            Write-Host "enemy hit"
-            $f.Hit($target.WeaponEquip,$Player)
+            #Write-Host "enemy hit"
+            #$f.Hit($target.WeaponEquip,$Player)
         }
         elseif($Player.X -gt $f.X)
         {
-            $f.X += 1
+            if(Get-Collition -Collitions $allObjects -KeyCode 39 -Walker $f -Dimensions $2D)
+            {
+                $f.X += 1
+            }
         }
         elseif($Player.X -lt $f.X)
         {
-            $f.X -= 1
+
+            if(Get-Collition -Collitions $allObjects -KeyCode 37 -Walker $f -Dimensions $2D)
+            {
+                $f.X -= 1
+            }
+
         }
         elseif($Player.Y -gt $f.Y)
         {
-            $f.Y += 1
+
+            if(Get-Collition -Collitions $allObjects -KeyCode 40 -Walker $f -Dimensions $2D)
+            {
+                $f.Y += 1
+            }
         }
         elseif($Player.Y -lt $f.Y)
         {
-            $f.Y -= 1
+ 
+            if(Get-Collition -Collitions $allObjects -KeyCode 38 -Walker $f -Dimensions $2D)
+            {
+                $f.Y -= 1
+            }
         }
+        else
+        {
+        
+        }
+
+        } # if closer than 10
     }
 }
 
 $2D = @{
-    X = 30
+    X = 40
     Y = 20
 }
 
-$weapon = Create-NewItem -ItemType 0 -Level 1 -Count 1 -ItemSubType (Get-Random -Minimum 1 -Maximum ([enum]::GetNames([WeaponType]).count -5) ) -X 1 -Y 2
+$weapon = Create-NewItem -ItemType 0 -Level 1 -Count 1 -ItemSubType (Get-Random -Minimum 1 -Maximum ([enum]::GetNames([WeaponType]).count -5) ) -X 2 -Y 2
+$weapon2 = Create-NewItem -ItemType 0 -Level 1 -Count 1 -ItemSubType 10 -X 1 -Y 2
+$shieldz = Create-NewItem -ItemType 2 -Level 1 -Count 1 -ItemSubType 1 -X 3 -Y 2
 
 $p = New-Object Player -ArgumentList 'Warrior',([Race]::Human),1,20,2,2,2,10,'@',1,1,([System.ConsoleColor]::Yellow)
 
 $foes = New-Enemy -Count 5 -FoeRace (Get-Random -Minimum 0 -Maximum 11)
 
-[System.Collections.ArrayList] $AllObjects = $foes + $p + $weapon
+[System.Collections.ArrayList] $AllObjects = $foes + $p + $weapon + $shieldz + $weapon2
 
 while(!(Get-Duplicates -AllObjects $AllObjects))
 {}
@@ -1293,12 +1345,8 @@ while($p.alive)
 
         71 
         {
-            Write-Host "Equipped weapon:"
-            $p.WeaponEquip
-            Write-Host "Equipped armor:"
-            $p.ArmorEquip
-            Write-Host "Equipped shield:"
-            $p.ShieldEquip
+            Write-Host "Equipped gear:"
+            $p.GetEquippedGear()
             $wait = $host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
         } # [G]ear equipped
 
@@ -1366,6 +1414,7 @@ while($p.alive)
     # If Arrow keys
     if($key -in 37..40)
     {
+
         if(Get-Collition -Collitions $AllObjects -KeyCode $key -Walker $p -Dimensions $2D)
         {
             Switch($key)
@@ -1423,7 +1472,7 @@ while($p.alive)
 
                 if($foundItem.ObjectType -eq 'Creature')
                 {
-                    $target = $p.Hit($p.WeaponEquip,$foundItem)
+                    $target = $p.Hit($foundItem)
 
                     if(!$target.alive)
                     {
@@ -1431,7 +1480,7 @@ while($p.alive)
                     }
                     else
                     {
-                        $target.Hit($target.WeaponEquip,$p)
+                        $target.Hit($p)
                     }
                 }
                 elseif($foundItem.ObjectType -eq 'Item')
@@ -1453,7 +1502,7 @@ while($p.alive)
         }
 
         #move monsters, needs fixing, collisions etc.
-        # Move-Monsters -Foes ($AllObjects |where NCP -eq $true) -Player $p
+         Move-Monsters -Foes ($AllObjects | where NCP -eq $true) -Player $p
     }
 }
 
@@ -1469,4 +1518,3 @@ $gameOverText = @"
 
 "@
 Write-Host $gameOverText -ForegroundColor Red
-
