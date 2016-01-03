@@ -13,9 +13,10 @@
 * Randomizers
 * Armors
 * Shields
+* Rings (give + stats)
 * Melee weapons
 * Rare types (common, uncommon, rare, epic)
-* Monsters drop loot
+* Monsters drop loot (weapons, armosrs, rings, gold)
 * Monster movement and follow player
 * Looting
 * Dropping
@@ -53,7 +54,7 @@ To do list:
 * Time System (ticks)
 * ~~Potion system~~ DONE
 * ~~Health (+1-3 HP)~~ DONE
-* Boost (needs time system implementation)
+* Time based boosts (like potions)
 * ~~Drop system~~ DONE
 * ~~Equipments~~ DONE
 * ~~Gold~~ DONE
