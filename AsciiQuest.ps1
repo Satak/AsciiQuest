@@ -1269,25 +1269,25 @@ param(
             switch($roll)
             {
                 {$_ -in 1..89} {$BaseAmount = 1}
-                {$_ -in 90..99}{$BaseBonus = 2}
-                {$_ -eq 100}   {$BaseBonus = 3}
+                {$_ -in 90..99}{$BaseAmount = 2}
+                {$_ -eq 100}   {$BaseAmount = 3}
             }
 
             switch($BaseAmount)
             {
-                0
-                {
-                    $Gold = (Get-Random -Minimum 1 -Maximum 100)
-                }
-
                 1
                 {
-                    $Gold = (Get-Random -Minimum 100 -Maximum 500)
+                    $Gold = (Get-Random -Minimum 1 -Maximum 300)
                 }
 
                 2
                 {
-                    $Gold = (Get-Random -Minimum 500 -Maximum 1000)
+                    $Gold = (Get-Random -Minimum 300 -Maximum 1000)
+                }
+
+                3
+                {
+                    $Gold = (Get-Random -Minimum 1000 -Maximum 2000)
                 }
             }
         } # Gold Coins
@@ -1319,7 +1319,7 @@ param(
                 $RareType = [RareType]::Rare
             }
 
-            100
+            {$_ -eq 100}
             {
                 $Multiplier = 2
                 $Color = [System.ConsoleColor]::Magenta
