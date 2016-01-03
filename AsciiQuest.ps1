@@ -1,6 +1,6 @@
 ﻿cls
-
 [System.Console]::BackgroundColor = [System.ConsoleColor]::Black
+
 enum RareType
 {
     Common
@@ -46,7 +46,7 @@ enum ItemSlot
     LeftHand = 1
     RightHand = 2
     Torso = 3
-    Jewelry = 4
+    Ring = 4
 }
 
 enum Hands
@@ -92,25 +92,35 @@ enum PotionType
     StrengthBoost
 }
 
+enum BonusType
+{
+    Attack
+    Dexterity
+    Strength
+}
+
 enum ItemType
 {
     Weapon
     Armor
     Shield
+    Ring
+    GoldCoin
 }
 
 # Items
 class Item
 {
-    [string]   $Name
-    [int]      $ID = (Get-Random)
-    [string]   $ObjectType = 'Item'
-    [string]   $S
-    [int]      $X
-    [int]      $Y
-               $Color
-    [int]      $Gold
-    [ItemSlot[]]    $ItemSlot
+    [string]     $Name
+    [int]        $ID = (Get-Random)
+    [string]     $ObjectType = 'Item'
+    [string]     $S
+    [int]        $X
+    [int]        $Y
+                 $Color
+    [int]        $Gold
+    [ItemSlot[]] $ItemSlot
+    [RareType]   $RareType
 }
 
 class Weapon : Item
@@ -121,7 +131,6 @@ class Weapon : Item
     [int]        $DamageBonus
     [Hands]      $Hands
     [bool]       $Melee
-    [RareType]   $RareType
     [Player]     $Equip
     [bool]       $UsableItem = $false
     
@@ -202,7 +211,6 @@ Class Armor : Item
     # Properties 
     [ArmorType]  $ArmorType
     [int]        $ACBonus
-    [RareType]   $RareType
     [Player]     $Equip
     [bool]       $UsableItem = $false
     
@@ -266,6 +274,65 @@ Class Shield : Item
         $this.Color =       $Color
         $this.Gold =        $Gold
         $this.ItemSlot =    $ItemSlot
+    }
+}
+
+Class Ring : Item
+{
+    # Properties 
+    [BonusType]  $BonusType
+    [int]        $Bonus
+    [Player]     $Equip
+    [bool]       $UsableItem = $false
+    
+    
+    # Constructor
+    Ring(
+        [BonusType]  $BonusType,
+        [int]        $Bonus,
+        [RareType]   $RareType,
+        [string]     $S,
+        [int]        $X,
+        [int]        $Y,
+                     $Color,
+        [int]        $Gold,
+        [ItemSlot[]] $ItemSlot
+    )
+    {
+        $this.Name =        "$($RareType.ToString()) $($BonusType.ToString()) Ring"
+        $this.BonusType =   $BonusType
+        $this.Bonus =       $Bonus
+        $this.RareType =    $RareType
+        $this.S =           $S
+        $this.X =           $X
+        $this.Y =           $Y
+        $this.Color =       $Color
+        $this.Gold =        $Gold
+        $this.ItemSlot =    $ItemSlot
+    }
+}
+
+Class GoldCoin : Item
+{
+    # Properties 
+    [int]        $Amount
+    [bool]       $UsableItem = $false
+    
+    # Constructor
+    GoldCoin(
+        [int]    $Amount,
+        [string] $S,
+        [int]    $X,
+        [int]    $Y,
+                 $Color
+    )
+    {
+        $this.Name = "$Amount Gold coins"
+        $this.Amount = $Amount
+        $this.S =      $S
+        $this.X =      $X
+        $this.Y =      $Y
+        $this.Color =  $Color
     }
 }
 
@@ -369,7 +436,12 @@ class Creature
 
     Loot([Item] $Item)
     {
-        if($this.Inventory.ID -notcontains $Item.ID)
+        if($Item -is [GoldCoin])
+        {
+            $this.Gold += $item.Amount
+            Write-Host "$($this.Name) Looted [$($Item.Amount)] gold"
+        }
+        elseif($this.Inventory.ID -notcontains $Item.ID)
         {
             $this.Inventory.add($Item)
             Write-Host "$($this.Name) Looted [$($Item.Name)]"
@@ -412,6 +484,15 @@ class Creature
             {
                 $this.TotalAC += $item.ACBonus
             }
+            elseif($item -is [Ring])
+            {
+                switch($item.BonusType)
+                {
+                    'Attack'{ $this.Atk += 1 }
+                    'Dexterity'{ $this.Dex += 1 }
+                    'Strength'{ $this.Str += 1 }
+                }
+            }
             
             $this.Inventory.Remove($Item)
             Write-Host "$($this.Name) equipped [$($Item.Name)]"
@@ -444,6 +525,15 @@ class Creature
             if($item -is [Armor] -or $item -is [Shield])
             {
                 $this.TotalAC -= $item.ACBonus
+            }            
+            elseif($item -is [Ring])
+            {
+                switch($item.BonusType)
+                {
+                    'Attack'{ $this.Atk -= 1 }
+                    'Dexterity'{ $this.Dex -= 1 }
+                    'Strength'{ $this.Str -= 1 }
+                }
             }
 
             $this.Inventory.add($Item)
@@ -573,9 +663,9 @@ class Foe : Creature
     {
         $roll = Get-Random -Minimum 1 -Maximum 101
 
-        $itemRoll = Get-Random -Minimum 0 -Maximum 4
+        $itemRoll = Get-Random -Minimum 0 -Maximum 6
 
-        if($roll -gt 1)
+        if($roll -ge 10)
         {
             $item = $null
 
@@ -604,6 +694,18 @@ class Foe : Creature
                     $item = Create-NewItem -ItemType 2 -Level 1 -Count 1 -ItemSubType (Get-Random -Minimum 1 -Maximum ([enum]::GetNames([ShieldType]).count) ) -X $this.X -Y $this.Y
                     
                 } # Drops Shield
+
+                4
+                {
+                    $item = Create-NewItem -ItemType 3 -Level 1 -Count 1 -ItemSubType (Get-Random -Minimum 0 -Maximum ([enum]::GetNames([BonusType]).count) ) -X $this.X -Y $this.Y
+                    
+                } # Drops Ring
+
+                5
+                {
+                    $item = Create-NewItem -ItemType 4 -Count 1 -X $this.X -Y $this.Y
+                    
+                } # Drops Gold Coins
             }
 
            Add-ItemToWorld -Item $item
@@ -1123,6 +1225,72 @@ param(
                 } # Metal
             }
         } # Shield
+
+        3
+        {
+
+            $roll = Get-Random -Minimum 1 -Maximum 101
+
+            switch($roll)
+            {
+                {$_ -in 1..89} {$BaseBonus = 1}
+                {$_ -in 90..99}{$BaseBonus = 2}
+                {$_ -eq 100}   {$BaseBonus = 3}
+            }
+
+            [ItemSlot[]] $ItemSlot = @([ItemSlot]::Ring)
+            switch($ItemSubType)
+            {
+                0
+                {
+                    $BonusType = [BonusType]::Attack
+                    $Gold = 2000 * $BaseBonus
+                } # Attack ring
+
+                1
+                {
+                    $BonusType = [BonusType]::Dexterity
+                    $Gold = 2000 * $BaseBonus
+                } # Dexterity Ring
+
+                2
+                {
+                    $BonusType = [BonusType]::Strength
+                    $Gold = 2000 * $BaseBonus
+                } # Strength Ring
+            }
+        } # Ring
+
+        4
+        {
+
+            $roll = Get-Random -Minimum 1 -Maximum 101
+
+            switch($roll)
+            {
+                {$_ -in 1..89} {$BaseAmount = 1}
+                {$_ -in 90..99}{$BaseBonus = 2}
+                {$_ -eq 100}   {$BaseBonus = 3}
+            }
+
+            switch($BaseAmount)
+            {
+                0
+                {
+                    $Gold = (Get-Random -Minimum 1 -Maximum 100)
+                }
+
+                1
+                {
+                    $Gold = (Get-Random -Minimum 100 -Maximum 500)
+                }
+
+                2
+                {
+                    $Gold = (Get-Random -Minimum 500 -Maximum 1000)
+                }
+            }
+        } # Gold Coins
     
     }
 
@@ -1153,7 +1321,7 @@ param(
 
             100
             {
-                $DM = 2
+                $Multiplier = 2
                 $Color = [System.ConsoleColor]::Magenta
                 $RareType = [RareType]::Elite
             }
@@ -1175,6 +1343,16 @@ param(
             {
                 New-Object Shield -ArgumentList $ItemSubType,([math]::Ceiling($ACBonus * $Multiplier)),$RareType,'0',$X,$Y,$Color,([math]::Ceiling($Gold * $Multiplier)),$ItemSlot
             } # Shield
+
+            3
+            {
+                New-Object Ring -ArgumentList $ItemSubType,([math]::Ceiling($BaseBonus * $Multiplier)),$RareType,'¤',$X,$Y,$Color,([math]::Ceiling($Gold * $Multiplier)),$ItemSlot
+            } # Ring
+
+            4
+            {
+                New-Object GoldCoin -ArgumentList ([math]::Ceiling($Gold * $Multiplier)),'.',$X,$Y,([System.ConsoleColor]::Yellow)
+            } # GoldCoin
         }
         
     }
