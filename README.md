@@ -16,6 +16,7 @@
 * Melee weapons
 * Rare types (common, uncommon, rare, epic)
 * Monsters drop loot
+* Monster movement and follow player
 * Looting
 * Dropping
 * Health potions
@@ -56,7 +57,7 @@ To do list:
 * ~~Equipments~~ DONE
 * ~~Gold~~ DONE
 * ~~Potions~~ DONE
-* Enemy movement
+* ~~Enemy movement~~ DONE
 * Towern, energy boost or disease
 * ~~Buy/Sell system~~ DONE
 * Leveling
