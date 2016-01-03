@@ -28,10 +28,8 @@
 * Move Down [Arrow Down]
 * Move Left [Arrow Left]
 * Move Rigth [Arrow Rigth]
-
 * Attack [collide with enemy]
 * Loot [collide with item]
-
 * Drop [d] note: only items that are unequipped can be dropped
 * Gear Equip [e]
 * Use item [1]
@@ -39,7 +37,6 @@
 * Inventory [i]
 * Player stats [s]
 * Equipped gear info [g]
-
 * Buy [z]
 * Sell [x]
           
