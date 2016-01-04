@@ -147,7 +147,7 @@ class Weapon : Item
         [int]        $Y,
                      $Color,
         [int]        $Gold,
-        [ItemSlot[]]   $ItemSlot
+        [ItemSlot[]] $ItemSlot
     )
     {
         $this.Name =        $RareType.ToString() + " " + $Hands.ToString() + " hand " + $WeaponType.ToString()
@@ -679,25 +679,25 @@ class Foe : Creature
 
                 1
                 {
-                    $item = Create-NewItem -ItemType 0 -Level 1 -Count 1 -ItemSubType (Get-Random -Minimum 1 -Maximum ([enum]::GetNames([WeaponType]).count) ) -X $this.X -Y $this.Y
+                    $item = Create-NewItem -ItemType 0 -Level $this.Level -Count 1 -ItemSubType (Get-Random -Minimum 1 -Maximum ([enum]::GetNames([WeaponType]).count) ) -X $this.X -Y $this.Y
                     
                 } # Drops Weapon
 
                 2
                 {
-                    $item = Create-NewItem -ItemType 1 -Level 1 -Count 1 -ItemSubType (Get-Random -Minimum 1 -Maximum ([enum]::GetNames([ArmorType]).count) ) -X $this.X -Y $this.Y
+                    $item = Create-NewItem -ItemType 1 -Level $this.Level -Count 1 -ItemSubType (Get-Random -Minimum 1 -Maximum ([enum]::GetNames([ArmorType]).count) ) -X $this.X -Y $this.Y
                     
                 } # Drops Armor
 
                 3
                 {
-                    $item = Create-NewItem -ItemType 2 -Level 1 -Count 1 -ItemSubType (Get-Random -Minimum 1 -Maximum ([enum]::GetNames([ShieldType]).count) ) -X $this.X -Y $this.Y
+                    $item = Create-NewItem -ItemType 2 -Level $this.Level -Count 1 -ItemSubType (Get-Random -Minimum 1 -Maximum ([enum]::GetNames([ShieldType]).count) ) -X $this.X -Y $this.Y
                     
                 } # Drops Shield
 
                 4
                 {
-                    $item = Create-NewItem -ItemType 3 -Level 1 -Count 1 -ItemSubType (Get-Random -Minimum 0 -Maximum ([enum]::GetNames([BonusType]).count) ) -X $this.X -Y $this.Y
+                    $item = Create-NewItem -ItemType 3 -Level $this.Level -Count 1 -ItemSubType (Get-Random -Minimum 0 -Maximum ([enum]::GetNames([BonusType]).count) ) -X $this.X -Y $this.Y
                     
                 } # Drops Ring
 
@@ -1362,6 +1362,7 @@ param(
 
 function Get-Store
 {
+param($Level)
 
     $gategorySelect = 'Weapon','Armor','Shield','Potion' | Out-GridView -PassThru
 
@@ -1370,7 +1371,7 @@ function Get-Store
         'Weapon' {$items = 1..([enum]::GetNames([WeaponType]).count -1) | %{Create-NewItem -ItemType 0 -Level 1 -Count 1 -ItemSubType $_ -X 0 -Y 0}}
         'Armor'  {$Items = 1..([enum]::GetNames([ArmorType]).count -1) | %{Create-NewItem -ItemType 1 -Level 1 -Count 1 -ItemSubType $_ -X 0 -Y 0}}
         'Shield' {$Items = 1..([enum]::GetNames([ShieldType]).count -1) | %{Create-NewItem -ItemType 2 -Level 1 -Count 1 -ItemSubType $_ -X 0 -Y 0}}
-        'Potion' {$Items = New-Object Potion -ArgumentList ([PotionType]::Health),0,0,100}
+        'Potion' {$Items = New-Object Potion -ArgumentList ([PotionType]::Health),0,0,(100*$Level)}
     }
 
 
@@ -1592,7 +1593,7 @@ while($p.alive)
         90
         {
             Write-Host "Select item to Buy"
-            $itemSelected = Get-Store
+            $itemSelected = Get-Store -Level $p.level
 
             $itemSelected
 
