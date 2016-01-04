@@ -1442,7 +1442,7 @@ param($Level)
     
     $iteration = $Level+1
 
-    $foes = 1..$iteration | % {New-Enemy -Count -Level $Level (Get-Random -Minimum 1 -Maximum 4) -FoeRace (Get-Random -Minimum 0 -Maximum 11)}
+    $foes = 1..$iteration | % {New-Enemy -Count (Get-Random -Minimum 1 -Maximum 4) -Level $Level -FoeRace (Get-Random -Minimum 0 -Maximum 11)}
 
     return $foes
 }
@@ -1458,7 +1458,7 @@ $shieldz = Create-NewItem -ItemType 2 -Level 1 -Count 1 -ItemSubType 1 -X 3 -Y 2
 
 $p = New-Object Player -ArgumentList 'Warrior',([Race]::Human),1,20,2,2,2,10,'@',1,1,([System.ConsoleColor]::Yellow)
 
-#$level = $p.level
+
 
 $foes = Invoke-GenerateMonsters -Level $p.level
 
