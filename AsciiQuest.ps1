@@ -488,9 +488,9 @@ class Creature
             {
                 switch($item.BonusType)
                 {
-                    'Attack'{ $this.Atk += 1 }
-                    'Dexterity'{ $this.Dex += 1 }
-                    'Strength'{ $this.Str += 1 }
+                    'Attack'{ $this.Atk += $item.bonus }
+                    'Dexterity'{ $this.Dex += $item.bonus }
+                    'Strength'{ $this.Str += $item.bonus }
                 }
             }
             
@@ -530,9 +530,9 @@ class Creature
             {
                 switch($item.BonusType)
                 {
-                    'Attack'{ $this.Atk -= 1 }
-                    'Dexterity'{ $this.Dex -= 1 }
-                    'Strength'{ $this.Str -= 1 }
+                    'Attack'{ $this.Atk -= $item.bonus }
+                    'Dexterity'{ $this.Dex -= $item.bonus }
+                    'Strength'{ $this.Str -= $item.bonus }
                 }
             }
 
@@ -784,7 +784,7 @@ param(
     
     cls
     [Console]::Out.Write("`n")
-    Write-host "Gold:[$($p.Gold)] XP:[$($p.XP)] HP:[$($p.HP)]" -ForegroundColor Red
+    Write-host "Gold:[$($p.Gold)] XP:[$($p.XP)] HP:[$($p.HP)] Level:[$($p.level)] AC:[$($p.TotalAC)] Str:[$($p.Str)] Dex:[$($p.Dex)]" -ForegroundColor Red
 
     foreach($y in 0..$YSize)
     {
@@ -1436,20 +1436,33 @@ param([Foe[]] $Foes, [player] $Player)
     }
 }
 
+function Invoke-GenerateMonsters
+{
+param($Level)
+    
+    $Level = $Level+1
+
+    $foes = 1..$Level | % {New-Enemy -Count (Get-Random -Minimum 1 -Maximum 4) -FoeRace (Get-Random -Minimum 0 -Maximum 11)}
+
+    return $foes
+}
+
 $2D = @{
-    X = 40
+    X = 60
     Y = 20
 }
 
-$weapon = Create-NewItem -ItemType 0 -Level 1 -Count 1 -ItemSubType (Get-Random -Minimum 1 -Maximum ([enum]::GetNames([WeaponType]).count -5) ) -X 2 -Y 2
-$weapon2 = Create-NewItem -ItemType 0 -Level 1 -Count 1 -ItemSubType 10 -X 1 -Y 2
+$weapon = Create-NewItem -ItemType 0 -Level 1 -Count 1 -ItemSubType (Get-Random -Minimum 1 -Maximum ([enum]::GetNames([WeaponType]).count) ) -X 2 -Y 2
+#$weapon2 = Create-NewItem -ItemType 0 -Level 1 -Count 1 -ItemSubType 10 -X 1 -Y 2
 $shieldz = Create-NewItem -ItemType 2 -Level 1 -Count 1 -ItemSubType 1 -X 3 -Y 2
 
 $p = New-Object Player -ArgumentList 'Warrior',([Race]::Human),1,20,2,2,2,10,'@',1,1,([System.ConsoleColor]::Yellow)
 
-$foes = New-Enemy -Count 5 -FoeRace (Get-Random -Minimum 0 -Maximum 11)
+#$level = $p.level
 
-[System.Collections.ArrayList] $AllObjects = $foes + $p + $weapon + $shieldz + $weapon2
+$foes = Invoke-GenerateMonsters -Level $p.level
+
+[System.Collections.ArrayList] $AllObjects = $foes + $p + $weapon + $shieldz
 
 while(!(Get-Duplicates -AllObjects $AllObjects))
 {}
@@ -1457,6 +1470,21 @@ while(!(Get-Duplicates -AllObjects $AllObjects))
 # game loop
 while($p.alive)
 {
+    if ( ($AllObjects | where {$_ -is [foe]}).count -eq 0 )
+    {
+        
+        $p.level++
+        Write-Warning "GRATZ you moved to level $($p.level)!"
+
+        $foes = Invoke-GenerateMonsters -Level $p.level
+
+        ($host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")).VirtualKeyCode
+
+        [System.Collections.ArrayList] $AllObjects = $foes + $p
+
+        while(!(Get-Duplicates -AllObjects $AllObjects))
+        {}
+    }
 
     Draw-Map -Objects $AllObjects -YSize $2D.Y -XSize $2D.X
 
