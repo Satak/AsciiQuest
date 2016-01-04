@@ -1440,9 +1440,9 @@ function Invoke-GenerateMonsters
 {
 param($Level)
     
-    $Level = $Level+1
+    $iteration = $Level+1
 
-    $foes = 1..$Level | % {New-Enemy -Count (Get-Random -Minimum 1 -Maximum 4) -FoeRace (Get-Random -Minimum 0 -Maximum 11)}
+    $foes = 1..$iteration | % {New-Enemy -Count -Level $Level (Get-Random -Minimum 1 -Maximum 4) -FoeRace (Get-Random -Minimum 0 -Maximum 11)}
 
     return $foes
 }
