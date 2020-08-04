@@ -1,10 +1,14 @@
 # ASCII Quest
 
-###Prerequisites
-* Powershell 5 (because of classes)
+![AsciiQuest game](/images/AsciiQuest.PNG)
+
+## Prerequisites
+
+* Powershell 5+
 * Run the game in Powershell shell, not ISE (because of some .NET classes don't work in ISE)
 
-###Features
+## Features
+
 * Single square map with boundaries
 * Player movement
 * Simplified D&D combat system
@@ -16,7 +20,7 @@
 * Rings (give + stats)
 * Melee weapons
 * Rare types (common, uncommon, rare, epic)
-* Monsters drop loot (weapons, armosrs, rings, gold)
+* Monsters drop loot (weapons, armors, rings, gold)
 * Monster movement and follow player
 * Looting
 * Dropping
@@ -24,11 +28,12 @@
 * XP counter
 * Buy and sell items
 
-###Key commands
+## Key commands
+
 * Move UP [Arrow UP]
 * Move Down [Arrow Down]
 * Move Left [Arrow Left]
-* Move Rigth [Arrow Rigth]
+* Move Right [Arrow Right]
 * Attack [collide with enemy]
 * Loot [collide with item]
 * Drop [d] note: only items that are unequipped can be dropped
@@ -40,8 +45,6 @@
 * Equipped gear info [g]
 * Buy [z]
 * Sell [x]
-          
-![alt tag](https://github.com/Satak/AsciiQuest/blob/master/AsciiQuest.PNG)
 
 To do list:
 
@@ -60,7 +63,7 @@ To do list:
 * ~~Gold~~ DONE
 * ~~Potions~~ DONE
 * ~~Enemy movement~~ DONE
-* Towern, energy boost or disease
+* Tower, energy boost or disease
 * ~~Buy/Sell system~~ DONE
 * Leveling
 * Scalability
